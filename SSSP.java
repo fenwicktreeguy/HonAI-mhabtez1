@@ -151,7 +151,7 @@ class SSSP_Runner{
         q.add(start_node);
         ArrayList<Integer> ret = new ArrayList<Integer>();
         while(q.size() > 0){
-            System.out.println(q.size());
+            //System.out.println(q.size());
             int t =q.pop();
             ret.add(t);
             vis.put(t,true);
@@ -213,14 +213,17 @@ public class SSSP {
         ArrayList<Integer> one = g.bfs(0);
         ArrayList<Integer> two = g.dfs(0);
         ArrayList<Integer> three = g.optimal_path(14);
+        System.out.println("BFS: ");
         for(Integer i  :one) {
             System.out.print(i + " ");
         }
         System.out.println();
+        System.out.println("DFS: ");
         for(Integer i : two){
             System.out.print(i + " ");
         }
         System.out.println();
+        System.out.println("BFS OPTIMAL PATH: ");
         for(Integer i : three){
             System.out.print(i + " ");
         }
@@ -228,9 +231,10 @@ public class SSSP {
 
 
         g.UCS(new NodeObj(0,0));
+        System.out.println("UCS WEIGHT: ");
         System.out.println(g.intermediate_sp.get(12));
         g.ucs_predecessor[0] = -1;
-
+        System.out.println("UCS OPTIMAL WEIGHTED PATH: ");
         ArrayList<Integer> wt_path =  g.optimal_path_ucs(12);
         for(Integer i : wt_path){
             System.out.print(i + " ");
