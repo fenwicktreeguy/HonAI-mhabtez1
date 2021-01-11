@@ -94,9 +94,11 @@ class SSSP_Runner{
         ArrayList<Integer> seen = new ArrayList<Integer>();
         while(pq.size() > 0){
             NodeObj tmp = pq.poll();
-            //System.out.println(tmp.nd + " " + tmp.cost);
+            System.out.println(tmp.nd + " " + tmp.cost);
             LinkedList<NodeObj> adj_list = (LinkedList<NodeObj>)(adj[tmp.nd].clone());
-            seen.add(tmp.nd);
+            if(!seen.contains(tmp.nd)) {
+                seen.add(tmp.nd);
+            }
             int prev_nd = 0;
             int relax_v = 100000000;
             while(!adj_list.isEmpty()) {
@@ -108,18 +110,19 @@ class SSSP_Runner{
                 if(!intermediate_sp.containsKey(tp.nd)) {
                     intermediate_sp.put(tp.nd, tmp.cost + wt);
                     ucs_predecessor[tp.nd] = tmp.nd;
+                    pq.add(addend);
                 } else {
                     intermediate_sp.put(tp.nd, Math.min(intermediate_sp.get(tp.nd), cst));
                     if(Math.min(intermediate_sp.get(tp.nd), cst)==cst){
                         ucs_predecessor[tp.nd] = tmp.nd;
+                        pq.add(addend);
                     }
                 }
                 if (relax_v == tmp.cost + wt) {
                     prev_nd = tp.nd;
                 }
-                if (!seen.contains(addend.nd)) {
-                    pq.add(addend);
-                }
+                //if (!seen.contains(addend.nd)) {
+
             }
 
 
