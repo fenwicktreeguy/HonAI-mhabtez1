@@ -118,11 +118,6 @@ class SSSP_Runner{
                         pq.add(addend);
                     }
                 }
-                if (relax_v == tmp.cost + wt) {
-                    prev_nd = tp.nd;
-                }
-                //if (!seen.contains(addend.nd)) {
-
             }
 
 
@@ -176,46 +171,79 @@ public class SSSP {
     public static void main(String[] args) {
         SSSP_Runner g = new SSSP_Runner(25);
 
-        g.addEdge(0, 1, 75);
-        g.addEdge(0, 3, 118);
-        g.addEdge(0, 4, 140);
-        g.addEdge(1, 0, 75);
-        g.addEdge(1, 2, 71);
-        g.addEdge(2, 1, 71);
-        g.addEdge(2, 4, 151);
-        g.addEdge(3, 0, 118);
-        g.addEdge(3, 5, 111);
-        g.addEdge(4, 2, 151);
-        g.addEdge(4, 0, 140);
-        g.addEdge(4, 8, 80);
-        g.addEdge(4, 9, 99);
-        g.addEdge(5, 3, 111);
-        g.addEdge(5, 6, 70);
-        g.addEdge(6, 5, 70);
-        g.addEdge(6, 7, 75);
-        g.addEdge(7, 6, 75);
-        g.addEdge(7, 11, 120);
-        g.addEdge(8, 4, 80);
-        g.addEdge(8,  11, 146);
-        g.addEdge(8, 10, 97);
-        g.addEdge(9, 4, 99);
-        g.addEdge(9, 12, 211);
-        g.addEdge(10, 8, 97);
-        g.addEdge(10, 11, 138);
-        g.addEdge(10, 12, 101);
-        g.addEdge(11, 10, 138);
-        g.addEdge(11, 8, 146);
-        g.addEdge(11, 7, 120);
-        g.addEdge(12, 10, 101);
-        g.addEdge(12, 9, 211);
-        g.addEdge(13, 12, 85);
-        g.addEdge(12, 13, 85);
-        g.addEdge(14, 12, 90);
-        g.addEdge(12, 14, 90);
+        g.addEdge(0, 2, 8);
+        g.addEdge(0, 1, 18);
+        g.addEdge(0, 3, 15);
+        g.addEdge(0, 4, 14);
+        g.addEdge(1, 0, 18);
+        g.addEdge(1, 4, 13);
+        g.addEdge(1, 6, 8);
+        g.addEdge(1, 8, 7);
+        g.addEdge(1, 7, 10);
+        g.addEdge(2, 0, 8);
+        g.addEdge(2, 5, 8);
+        g.addEdge(2, 6, 6);
+        g.addEdge(3, 0, 15);
+        g.addEdge(3, 5, 5);
+        g.addEdge(3, 10, 12);
+        g.addEdge(4, 0, 14);
+        g.addEdge(4, 1, 13);
+        g.addEdge(4, 7, 10);
+        g.addEdge(5, 2, 8);
+        g.addEdge(5, 3, 5);
+        g.addEdge(5, 6, 6);
+        g.addEdge(5, 11, 8);
+        g.addEdge(5, 13, 11);
+        g.addEdge(6, 1, 8);
+        g.addEdge(6, 2, 6);
+        g.addEdge(6, 5, 6);
+        g.addEdge(6, 8, 5);
+        g.addEdge(6, 11, 8);
+        g.addEdge(7, 1, 10);
+        g.addEdge(7, 4, 10);
+        g.addEdge(8, 1, 7);
+        g.addEdge(8, 6, 5);
+        g.addEdge(8, 9, 9);
+        g.addEdge(8, 12, 11);
+        g.addEdge(9, 8, 9);
+        g.addEdge(9, 11, 8);
+        g.addEdge(9, 12, 5);
+        g.addEdge(9, 15, 11);
+        g.addEdge(9, 18, 12);
+        g.addEdge(10, 3, 12);
+        g.addEdge(10, 13, 9);
+        g.addEdge(11, 5, 8);
+        g.addEdge(11, 6, 8);
+        g.addEdge(11, 9, 8);
+        g.addEdge(11, 14, 7);
+        g.addEdge(12, 8, 11);
+        g.addEdge(12, 9, 5);
+        g.addEdge(12, 18, 12);
+        g.addEdge(13, 5, 11);
+        g.addEdge(13, 10, 9);
+        g.addEdge(13, 14, 5);
+        g.addEdge(13, 16, 7);
+        g.addEdge(14, 11, 7);
+        g.addEdge(14, 13, 5);
+        g.addEdge(14, 16, 5);
+        g.addEdge(14, 15, 9);
+        g.addEdge(15, 9, 11);
+        g.addEdge(15, 14, 9);
+        g.addEdge(15, 17, 9);
+        g.addEdge(16, 13, 7);
+        g.addEdge(16, 14, 5);
+        g.addEdge(17, 15, 9);
+        g.addEdge(17, 18, 8);
+        g.addEdge(18, 12, 12);
+        g.addEdge(18, 9, 12);
+        g.addEdge(18, 17, 8);
 
-        ArrayList<Integer> one = g.bfs(0);
-        ArrayList<Integer> two = g.dfs(0);
-        ArrayList<Integer> three = g.optimal_path(14);
+        int nd = 7;
+        int goal = 10;
+
+        ArrayList<Integer> one = g.bfs(nd);
+        ArrayList<Integer> two = g.dfs(nd);
+        ArrayList<Integer> three = g.optimal_path(goal);
         System.out.println("BFS: ");
         for(Integer i  :one) {
             System.out.print(i + " ");
@@ -233,12 +261,13 @@ public class SSSP {
         System.out.println();
 
 
-        g.UCS(new NodeObj(0,0));
+
+        g.UCS(new NodeObj(nd,0));
         System.out.println("UCS WEIGHT: ");
-        System.out.println(g.intermediate_sp.get(12));
-        g.ucs_predecessor[0] = -1;
+        System.out.println(g.intermediate_sp.get(goal));
+        g.ucs_predecessor[nd] = -1;
         System.out.println("UCS OPTIMAL WEIGHTED PATH: ");
-        ArrayList<Integer> wt_path =  g.optimal_path_ucs(12);
+        ArrayList<Integer> wt_path =  g.optimal_path_ucs(goal);
         for(Integer i : wt_path){
             System.out.print(i + " ");
         }
@@ -246,5 +275,11 @@ public class SSSP {
 
     }
 
-}
+    //SHORTEST UNWEIGHTED PATH FROM PHILLY TO POTTSTOWN: 0,1,8,9,18
+    //SHORTEST WEIGHTED PATH TO PHILLY TO POTTSTOWN: 40, 0,2,6,8,9,18
+    //SHORTEST UNWEIGHTED PATH FROM NEWTOWN SQUARE TO ST. PETERS: 5,11,9,15,17(technically same length as weighted path)
+    //SHORTEST WEIGHTED PATH FROM NEWTOWN SQUARE TO ST. PETERS: 33, 5,11,14,15,17
+    //SHORTEST UNWEIGHTED PATH FROM NORTH WALES TO CHADSFORD: 7,1,0,3,10
+    //SHORTEST WEIGHED PATH FROM NORTH WALES TO CHADSFORD: 41, 7,1,6,5,3,10
 
+}
