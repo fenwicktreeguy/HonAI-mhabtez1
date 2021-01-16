@@ -61,10 +61,8 @@ class SSSP_Runner{
     public static int[] astar_predecessor;
     public static PriorityQueue<NodeObj> pq;
     public static PriorityQueue<NodeObj> pq_two;
-    
     public SSSP_Runner(int n_nodes){
         adj = new LinkedList[n_nodes];
-        weights = new HashMap<Edge,Integer>();
         vis = new HashMap<Integer,Boolean>();
         intermediate_sp = new HashMap<Integer,Integer>();
         intermediate_sp_heuristic = new HashMap<Integer, Integer>();
@@ -408,6 +406,7 @@ public class SSSP {
         for(Integer i : wt_path_two){
             System.out.print(i + " ");
         }
+        System.out.println();
 
     }
 
