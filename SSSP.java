@@ -1,3 +1,4 @@
+
 import java.util.*;
 
 class Edge{
@@ -11,6 +12,18 @@ class Edge{
         this.a=a;
         this.b=b;
         this.w=w;
+    }
+}
+
+class Location{
+    int x;
+    int y;
+    public Location(int x, int y){
+        this.x=x;
+        this.y=y;
+    }
+    public static int euclidean_distance(Location loc1, Location loc2){
+        return (int)(Math.sqrt( Math.pow(loc1.x-loc2.x,2) + Math.pow(loc1.y-loc2.y,2) ));
     }
 }
 
@@ -61,6 +74,8 @@ class SSSP_Runner{
     public static int[] astar_predecessor;
     public static PriorityQueue<NodeObj> pq;
     public static PriorityQueue<NodeObj> pq_two;
+    //specifically for A* algorithm animation
+    public static HashMap<Integer, Location> animation_procedure;
     public SSSP_Runner(int n_nodes){
         adj = new LinkedList[n_nodes];
         vis = new HashMap<Integer,Boolean>();
@@ -78,6 +93,7 @@ class SSSP_Runner{
         }
         pq = new PriorityQueue<NodeObj>(new NodeComparator());
         pq_two = new PriorityQueue<NodeObj>(new NodeComparatorTwo() );
+        animation_procedure = new HashMap<Integer,Location>();
     }
     public void addEdge(int u, int v, int w){
         adj[u].add(new NodeObj(v,w));
@@ -168,7 +184,7 @@ class SSSP_Runner{
         while(pq_two.size() > 0){
             ++amt;
             NodeObj tmp = pq_two.poll();
-            System.out.println(tmp.nd + " " + tmp.cost);
+            //System.out.println(tmp.nd + " " + tmp.cost);
             LinkedList<NodeObj> adj_list = (LinkedList<NodeObj>)(adj[tmp.nd].clone());
             if(!seen.contains(tmp.nd)) {
                 seen.add(tmp.nd);
@@ -240,9 +256,71 @@ class SSSP_Runner{
 }
 
 public class SSSP {
+    static int[][] grid = {
+            {0, 1, 2, 3,-1,-1, 4, 5},
+            {6, 7, 8, 9,-1,10,11,12},
+            {-1,-1,13,14,-1,15,16,17},
+            {-1,-1,18,19,20,21,22,-1},
+            {36,23,24,25,26,27,-1,-1},
+            {28,-1,-1,29,30,31,32,-1}
+    };
+    static int dx[] = {1,0,-1,0};
+    static int dy[] = {0,1,0,-1};
+    static int UNIFORM_WEIGHT= 8;
+    static int MAXIMUM_WEIGHT = 1000000000;
+    static ArrayList<Location> save_optimum = new ArrayList<Location>();
+
+    public static void astar_preprocessing(){
+    }
+
+    public static ArrayList<Integer> develop_graph(){
+        SSSP_Runner g = new SSSP_Runner(50);
+        for(int i = 0; i < grid.length; i++){
+            for(int j = 0; j < grid[0].length; j++){
+                if(grid[i][j] == -1){
+                    continue;
+                }
+                for(int k = 0; k < 4; k++) {
+                    boolean pos = true;
+                    if (i + dx[k] >= grid.length || j + dy[k] >= grid[0].length){
+                        pos=false;
+                    }
+                    if(i + dx[k] < 0 || j + dy[k] < 0){
+                        pos = false;
+                    }
+                    if(pos){
+                        System.out.println("ONE: " + i + " " + j);
+                        System.out.println("TWO: " + (i+dx[k]) + " " + (j+dy[k]) );
+                        Location one = new Location(i,j);
+                        Location two = new Location(i+dx[k],j+dy[k]);
+                        int val = Location.euclidean_distance(one,two);
+                        //adding 1 so i can add -1 into the graph class (shift down values by one in optimal path)
+                        System.out.println("EDGE: " + grid[i][j] + " " + grid[i+dx[k]][j+dy[k]]);
+                        if(grid[i+dx[k]][j+dy[k]] != -1) {
+                            g.addEdge(grid[i][j], grid[i + dx[k]][j + dy[k]], UNIFORM_WEIGHT, val);
+                            System.out.println(grid[i][j] + " " + grid[i+dx[k]][j+dy[k]] + " " + UNIFORM_WEIGHT);
+                        } else {
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+        int nd = 0;
+        int goal = 4;
+        g.astar(new NodeObj(nd,0), new NodeObj(goal,0));
+        g.astar_predecessor[nd] = -1;
+        ArrayList<Integer> ar = g.optimal_path_astar(goal);
+        for(Integer i : ar){
+            System.out.print(i + " " );
+        }
+        System.out.println();
+        return ar;
+    }
+
     public static void main(String[] args) {
         SSSP_Runner g = new SSSP_Runner(25);
-
+        /*
         g.addEdge(0, 3, 118, 329);
         g.addEdge(0, 4, 140, 253);
 
@@ -363,6 +441,9 @@ public class SSSP {
         g.addEdge(18, 17, 8);
          */
 
+        develop_graph();
+
+        /*
         int nd = 0;
         int goal = 14;
 
@@ -398,6 +479,7 @@ public class SSSP {
         System.out.println("UCS OPTIMAL WEIGHTED PATH: ");
         ArrayList<Integer> wt_path =  g.optimal_path_ucs(goal);
         ArrayList<Integer> wt_path_two = g.optimal_path_astar(goal);
+
         for(Integer i : wt_path){
             System.out.print(i + " ");
         }
@@ -407,7 +489,7 @@ public class SSSP {
             System.out.print(i + " ");
         }
         System.out.println();
-
+        */
     }
 
     //SHORTEST UNWEIGHTED PATH FROM PHILLY TO POTTSTOWN: 0,1,8,9,18
@@ -418,4 +500,3 @@ public class SSSP {
     //SHORTEST WEIGHED PATH FROM NORTH WALES TO CHADSFORD: 41, 7,1,6,5,3,10
 
 }
-
