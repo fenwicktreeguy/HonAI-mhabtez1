@@ -40,14 +40,15 @@ public class Pathfinder extends SSSP{
         int fontSize = 20;
         int GRID_X = 6;
         int GRID_Y = 8;
-        int START = 0;
-        int GOAL = 4;
-        int X_INC = 50;
-        int Y_INC = 50;
+        int START = SSSP.nd;
+        int GOAL = SSSP.goal;
+        int X_INC = 35;
+        int Y_INC = 35;
         ArrayList<Integer> save_path;
         int ANIMATE_IDX = 0;
         int TRUE_IDX = 0;
         Location current_loc;
+
 
         Color co = new Color(255,255,255);
         Color[] coArray = {
@@ -78,32 +79,33 @@ public class Pathfinder extends SSSP{
         @Override
         public void paintComponent(Graphics g) {
             Graphics2D g2 = (Graphics2D)g;
-            g2.setBackground(Color.BLACK);
+            g2.setBackground(Color.WHITE);
             g2.fillRect(0, 0,(int)d.getWidth() , (int)d.getHeight());
-            for(int i = 0; i < SSSP.grid.length; i++){
-                for(int j = 0; j < SSSP.grid[0].length; j++){
+            for(int i = 0; i < SSSP.expanded_grid.length; i++){
+                for(int j = 0; j < SSSP.expanded_grid[0].length; j++){
                     int x = (j+1) * X_INC;
                     int y = (i+1) * Y_INC;
-                    SSSP_Runner.animation_procedure.put(grid[i][j], new Location(x,y));
-                    if(SSSP.grid[i][j] == START){
+                    SSSP_Runner.animation_procedure.put(expanded_grid[i][j], new Location(x,y));
+                    if(SSSP.expanded_grid[i][j] == START){
                         g2.setColor(Color.GREEN);
                         //g2.drawRect( (i+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                         g2.fillRect( (j+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                         g2.setColor(Color.BLACK);
                         g2.drawRect( (j+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
-                    } else if(SSSP.grid[i][j] == GOAL){
+                    } else if(SSSP.expanded_grid[i][j] == GOAL){
                         g2.setColor(Color.RED);
                         //g2.drawRect( (i+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                         g2.fillRect( (j+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                         g2.setColor(Color.BLACK);
                         g2.drawRect( (j+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
-                    } else if(SSSP.grid[i][j] == -1){
+                    } else if(SSSP.expanded_grid[i][j] == -1){
                         g2.setColor(Color.PINK);
                         g2.fillRect( (j+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                         g2.setColor(Color.BLACK);
                         g2.drawRect( (j+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                     } else {
-                        g2.setColor(Color.WHITE);
+                        float f = normalize_color(global_height_mp[i][j]);
+                        g2.setColor(new Color(f,f,f));
                         //g2.drawRect( (i+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                         g2.fillRect( (j+1) * X_INC, (i+1)*(Y_INC), X_INC, X_INC);
                         g2.setColor(Color.BLACK);
@@ -111,14 +113,14 @@ public class Pathfinder extends SSSP{
                     }
                 }
             }
-            if(TRUE_IDX >= save_path.size()){
-                TRUE_IDX = 0;
-            }
-
             if(ANIMATE_IDX == 15) {
                 ANIMATE_IDX = 0;
                 ++TRUE_IDX;
             }
+            if(TRUE_IDX >= save_path.size()){
+                TRUE_IDX = 0;
+            }
+
             Location l = SSSP_Runner.animation_procedure.get(save_path.get(TRUE_IDX));
             g2.setColor(Color.YELLOW);
             g2.fillRect(l.x,l.y,X_INC,Y_INC);
