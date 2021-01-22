@@ -1,4 +1,3 @@
-
 import java.util.*;
 
 class Edge{
@@ -37,6 +36,15 @@ class NodeObj{
         this.cost_goal=cost_goal;
     }
     public NodeObj(int nd, double cost){
+        this.nd=nd;
+        this.cost=cost;
+    }
+}
+
+class NodeVis{
+    int nd;
+    double cost;
+    public NodeVis(int nd, double cost){
         this.nd=nd;
         this.cost=cost;
     }
@@ -150,11 +158,13 @@ class SSSP_Runner{
         while(pq.size() > 0){
             ++amt;
             NodeObj tmp = pq.poll();
-            System.out.println(tmp.nd + " " + tmp.cost);
             LinkedList<NodeObj> adj_list = (LinkedList<NodeObj>)(adj[tmp.nd].clone());
-            if(!seen.contains(tmp.nd)) {
+            if(!seen.contains(tmp)) {
                 seen.add(tmp.nd);
+            } else {
+                continue;
             }
+            System.out.println(tmp.nd + " " + tmp.cost);
             int prev_nd = 0;
             double relax_v = 100000000;
             while(!adj_list.isEmpty()) {
@@ -178,28 +188,43 @@ class SSSP_Runner{
         }
         System.out.println("AMOUNT: " + amt);
     }
+    public static boolean is_contained(ArrayList<NodeObj> a, NodeObj comp){
+        for(NodeObj n : a){
+            if(n.cost == comp.cost && n.cost_goal == comp.cost_goal && n.nd == comp.nd){
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static void astar(NodeObj start_node, NodeObj goal_node){
         pq_two.add(start_node);
-        HashMap<Integer,Boolean> seen = new HashMap<Integer,Boolean>();
+        HashMap<NodeObj,Boolean> seen = new HashMap<NodeObj,Boolean>();
+        ArrayList<NodeObj> seen_two = new ArrayList<NodeObj>();
         int amt = 0;
         while(pq_two.size() > 0){
             ++amt;
             NodeObj tmp = pq_two.poll();
-            //System.out.println(tmp.nd + " " + tmp.cost);
-            LinkedList<NodeObj> adj_list = adj[tmp.nd];
-            if(!seen.containsKey(tmp.nd)) {
-                seen.put(tmp.nd,true);
+
+            if(!is_contained(seen_two,tmp)){
+                seen_two.add(tmp);
+            } else {
+                continue;
             }
+
+            if(amt % 900 == 0) {
+                //System.out.println(tmp.nd + " " + tmp.cost + " " + tmp.cost_goal);
+            }
+            LinkedList<NodeObj> adj_list = adj[tmp.nd];
             double relax_v = 100000000;
             for(int i = 0; i < adj_list.size(); i++){
                 NodeObj tp = adj_list.get(i);
                 double wt = tp.cost;
                 NodeObj addend = new NodeObj(tp.nd, tmp.cost + wt, tp.cost_goal);
                 relax_v = Math.min(relax_v, tmp.cost + wt);
-                double  cst = tmp.cost + wt;
+                double  cst = tmp.cost + wt + tmp.cost_goal;
                 if(!intermediate_sp_heuristic.containsKey(tp.nd)) {
-                    intermediate_sp_heuristic.put(tp.nd, tmp.cost + wt);
+                    intermediate_sp_heuristic.put(tp.nd, tmp.cost + wt + tmp.cost_goal);
                     astar_predecessor[tp.nd] = tmp.nd;
                     pq_two.add(addend);
                 } else {
@@ -259,7 +284,7 @@ class SSSP_Runner{
 
 public class SSSP {
     public static int nd = 1;
-    public static int goal = 124;
+    public static int goal = 800;
     static int[][] grid = {
             {0, 1, 2, 3,-1,-1, 4, 5},
             {6, 7, 8, 9,-1,10,11,12},
@@ -359,13 +384,13 @@ public class SSSP {
     }
 
     public static ArrayList<Integer> develop_graph(){
-        SSSP_Runner g = new SSSP_Runner(800);
+        SSSP_Runner g = new SSSP_Runner(120000);
         double[] poly_coeffs_x = {0,0.5};//coeffs are constants for polys x,x^2,x^3....
         double[] poly_coeffs_y = {0,0.5};//coeffs are constants for y,y^2,y^3,...
         double[] poly_coeffs_neg_x = {0};//coeffs are constants 1/x, 1/(x^2), 1/(x^3)...
         double[] poly_coeffs_neg_y = {0};//coeffs are constants for 1/y, 1/(y^2), 1/(y^3)...
         int constant = 4;
-        expanded_grid = expand_grid(grid,2);
+        expanded_grid = expand_grid(grid,5);
         double[][] heightmap = augment_grid(poly_coeffs_x,poly_coeffs_y,poly_coeffs_neg_x,poly_coeffs_neg_y,constant);
         global_height_mp = heightmap;
         for(int i = 0; i < expanded_grid.length; i++){
