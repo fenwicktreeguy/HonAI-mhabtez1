@@ -29,14 +29,14 @@ class Location{
 
 class NodeObj{
     int nd;
-    int cost;
-    int cost_goal;
-    public NodeObj(int nd, int cost, int cost_goal){
+    double cost;
+    double cost_goal;
+    public NodeObj(int nd, double cost, double cost_goal){
         this.nd=nd;
         this.cost=cost;
         this.cost_goal=cost_goal;
     }
-    public NodeObj(int nd, int cost){
+    public NodeObj(int nd, double cost){
         this.nd=nd;
         this.cost=cost;
     }
@@ -67,8 +67,8 @@ class NodeComparatorTwo implements Comparator<NodeObj>{
 class SSSP_Runner{
     public static LinkedList<NodeObj> adj[];
     public static HashMap<Integer,Boolean> vis;
-    public static HashMap<Integer, Integer> intermediate_sp;
-    public static HashMap<Integer, Integer> intermediate_sp_heuristic;
+    public static HashMap<Integer, Double> intermediate_sp;
+    public static HashMap<Integer, Double> intermediate_sp_heuristic;
     public static int[] predecessor;
     public static int[] ucs_predecessor;
     public static int[] astar_predecessor;
@@ -79,8 +79,8 @@ class SSSP_Runner{
     public SSSP_Runner(int n_nodes){
         adj = new LinkedList[n_nodes];
         vis = new HashMap<Integer,Boolean>();
-        intermediate_sp = new HashMap<Integer,Integer>();
-        intermediate_sp_heuristic = new HashMap<Integer, Integer>();
+        intermediate_sp = new HashMap<Integer,Double>();
+        intermediate_sp_heuristic = new HashMap<Integer, Double>();
         for(int i = 0; i < n_nodes; i++){
             adj[i] = new LinkedList();
         }
@@ -102,7 +102,7 @@ class SSSP_Runner{
         //System.out.println(v + " " + u);
     }
 
-    public void addEdge(int u, int v, int w, int heuristic){
+    public void addEdge(int u, int v, double w, double heuristic){
         adj[u].add(new NodeObj(v,w,heuristic));
     }
     //returns order of nodes in bfs
@@ -123,6 +123,7 @@ class SSSP_Runner{
         int pt = ucs_predecessor[end_node];
         ans.add(end_node);
         while(pt != -1){
+            System.out.println(pt);
             ans.add(pt);
             pt = ucs_predecessor[pt];
         }
@@ -135,6 +136,7 @@ class SSSP_Runner{
         ans.add(end_node);
         while(pt != -1){
             ans.add(pt);
+            //System.out.println("PATH: " + pt);
             pt = astar_predecessor[pt];
         }
         Collections.reverse(ans);
@@ -154,13 +156,13 @@ class SSSP_Runner{
                 seen.add(tmp.nd);
             }
             int prev_nd = 0;
-            int relax_v = 100000000;
+            double relax_v = 100000000;
             while(!adj_list.isEmpty()) {
                 NodeObj tp = adj_list.poll();
-                int wt = tp.cost;
+                double wt = tp.cost;
                 NodeObj addend = new NodeObj(tp.nd, tmp.cost + wt);
                 relax_v = Math.min(relax_v, tmp.cost + wt);
-                int cst = tmp.cost + wt;
+                double cst = tmp.cost + wt;
                 if(!intermediate_sp.containsKey(tp.nd)) {
                     intermediate_sp.put(tp.nd, tmp.cost + wt);
                     ucs_predecessor[tp.nd] = tmp.nd;
@@ -179,23 +181,23 @@ class SSSP_Runner{
 
     public static void astar(NodeObj start_node, NodeObj goal_node){
         pq_two.add(start_node);
-        ArrayList<Integer> seen = new ArrayList<Integer>();
+        HashMap<Integer,Boolean> seen = new HashMap<Integer,Boolean>();
         int amt = 0;
         while(pq_two.size() > 0){
             ++amt;
             NodeObj tmp = pq_two.poll();
             //System.out.println(tmp.nd + " " + tmp.cost);
-            LinkedList<NodeObj> adj_list = (LinkedList<NodeObj>)(adj[tmp.nd].clone());
-            if(!seen.contains(tmp.nd)) {
-                seen.add(tmp.nd);
+            LinkedList<NodeObj> adj_list = adj[tmp.nd];
+            if(!seen.containsKey(tmp.nd)) {
+                seen.put(tmp.nd,true);
             }
-            int relax_v = 100000000;
-            while(!adj_list.isEmpty()) {
-                NodeObj tp = adj_list.poll();
-                int wt = tp.cost;
+            double relax_v = 100000000;
+            for(int i = 0; i < adj_list.size(); i++){
+                NodeObj tp = adj_list.get(i);
+                double wt = tp.cost;
                 NodeObj addend = new NodeObj(tp.nd, tmp.cost + wt, tp.cost_goal);
                 relax_v = Math.min(relax_v, tmp.cost + wt);
-                int cst = tmp.cost + wt;
+                double  cst = tmp.cost + wt;
                 if(!intermediate_sp_heuristic.containsKey(tp.nd)) {
                     intermediate_sp_heuristic.put(tp.nd, tmp.cost + wt);
                     astar_predecessor[tp.nd] = tmp.nd;
@@ -209,7 +211,7 @@ class SSSP_Runner{
                 }
             }
         }
-        System.out.println("AMOUNT: " + amt);
+        System.out.println("OPTIMAL PATH LENGTH: " + intermediate_sp_heuristic.get(goal_node.nd));
     }
 
     public static ArrayList<Integer> bfs(int start_node){
@@ -256,6 +258,8 @@ class SSSP_Runner{
 }
 
 public class SSSP {
+    public static int nd = 1;
+    public static int goal = 124;
     static int[][] grid = {
             {0, 1, 2, 3,-1,-1, 4, 5},
             {6, 7, 8, 9,-1,10,11,12},
@@ -264,41 +268,140 @@ public class SSSP {
             {36,23,24,25,26,27,-1,-1},
             {28,-1,-1,29,30,31,32,-1}
     };
+    static int[][] expanded_grid;
+
     static int dx[] = {1,0,-1,0};
     static int dy[] = {0,1,0,-1};
-    static int UNIFORM_WEIGHT= 8;
+    static int UNIFORM_WEIGHT= 1;
     static int MAXIMUM_WEIGHT = 1000000000;
+    static double[][] global_height_mp;
     static ArrayList<Location> save_optimum = new ArrayList<Location>();
+    static ArrayList<Double> height_range = new ArrayList<Double>();
 
-    public static void astar_preprocessing(){
+    //make height map out of grid (use some color scale to indicate height in 2D map
+    public static double[][] augment_grid(double[] poly_coeffs_x, double[] poly_coeffs_y, double[] neg_x, double[] neg_y, int constant){
+        double[][] grid_heightmap = new double[expanded_grid.length][expanded_grid[0].length];
+        int SHIFT_X = expanded_grid.length/2;
+        int SHIFT_Y = expanded_grid[0].length/2;
+        for(int i = 0; i < expanded_grid.length; i++){
+            for(int j = 0; j < expanded_grid[0].length; j++){
+                for(int k = 0; k < poly_coeffs_x.length; k++) {
+                    grid_heightmap[i][j] += (double)(poly_coeffs_x[k] * Math.pow((i-SHIFT_X),k+1));
+                }
+                for(int k = 0; k < poly_coeffs_y.length; k++){
+                    grid_heightmap[i][j] += (double)(poly_coeffs_y[k] * Math.pow((j-SHIFT_Y),k+1));
+                }
+                /*
+                for(int k = 0; k < neg_x.length; k++){
+                    grid_heightmap[i][j] += (double)(neg_x[k] * Math.pow((i-SHIFT_X),k-1));
+                }
+                for(int k = 0; k < neg_y.length; k++){
+                    grid_heightmap[i][j] += (double)(neg_y[k] * Math.pow((j-SHIFT_Y),k-1));
+                }
+                 */
+                height_range.add(grid_heightmap[i][j]);
+            }
+        }
+        Collections.sort(height_range);
+        return grid_heightmap;
+    }
+
+    public static float normalize_color(double value){
+        double MAX = height_range.get(height_range.size()-1);
+        double MIN = height_range.get(0);
+        return (float)(value - MIN)/(float)(MAX - MIN);
+    }
+
+    public static int[][] expand_grid(int[][] param, int factor){
+        int P_X =param.length;
+        int P_Y = param[0].length;
+        int[][] retval= new int[( (P_X) * (factor)) ][( (P_Y) * (factor)) ];
+
+        System.out.println(retval.length + " " + retval[0].length);
+        int PTR_X = 0;
+        int PTR_Y = 0;
+        int CURRENT_VALUE = 1;
+
+        for(int i = 0; i < retval.length; i++){
+            for(int j = 0; j < retval[0].length; j++){
+                retval[i][j]=-1;
+            }
+        }
+
+        for(int i = 0; i < P_Y; i++){
+            for(int j = 0; j < P_X; j++){
+                for(int k = PTR_X; k < PTR_X+(factor); k++){
+                    for(int l = PTR_Y; l < PTR_Y + (factor); l++){
+                        System.out.println(k + " " + l);
+                        if(param[j][i] == -1) {
+                            retval[k][l] = param[j][i];
+                        } else {
+                            retval[k][l] = CURRENT_VALUE;
+                            ++CURRENT_VALUE;
+                        }
+                    }
+                }
+                System.out.println("----------------");
+                PTR_X += factor;
+            }
+            PTR_Y += factor;
+            PTR_X=0;
+
+        }
+
+        for(int i = 0; i < retval.length; i++){
+            for(int j = 0; j < retval[0].length; j++){
+                System.out.print(retval[i][j] + " ");
+            }
+            System.out.println();
+        }
+        return retval;
     }
 
     public static ArrayList<Integer> develop_graph(){
-        SSSP_Runner g = new SSSP_Runner(50);
-        for(int i = 0; i < grid.length; i++){
-            for(int j = 0; j < grid[0].length; j++){
-                if(grid[i][j] == -1){
+        SSSP_Runner g = new SSSP_Runner(800);
+        double[] poly_coeffs_x = {0,0.5};//coeffs are constants for polys x,x^2,x^3....
+        double[] poly_coeffs_y = {0,0.5};//coeffs are constants for y,y^2,y^3,...
+        double[] poly_coeffs_neg_x = {0};//coeffs are constants 1/x, 1/(x^2), 1/(x^3)...
+        double[] poly_coeffs_neg_y = {0};//coeffs are constants for 1/y, 1/(y^2), 1/(y^3)...
+        int constant = 4;
+        expanded_grid = expand_grid(grid,2);
+        double[][] heightmap = augment_grid(poly_coeffs_x,poly_coeffs_y,poly_coeffs_neg_x,poly_coeffs_neg_y,constant);
+        global_height_mp = heightmap;
+        for(int i = 0; i < expanded_grid.length; i++){
+            for(int j = 0; j < expanded_grid[0].length; j++){
+                if(expanded_grid[i][j] == -1){
                     continue;
                 }
                 for(int k = 0; k < 4; k++) {
                     boolean pos = true;
-                    if (i + dx[k] >= grid.length || j + dy[k] >= grid[0].length){
+                    if (i + dx[k] >= expanded_grid.length || j + dy[k] >= expanded_grid[0].length){
                         pos=false;
                     }
                     if(i + dx[k] < 0 || j + dy[k] < 0){
                         pos = false;
                     }
                     if(pos){
-                        System.out.println("ONE: " + i + " " + j);
-                        System.out.println("TWO: " + (i+dx[k]) + " " + (j+dy[k]) );
+                        //System.out.println("ONE: " + i + " " + j);
+                        //System.out.println("TWO: " + (i+dx[k]) + " " + (j+dy[k]) );
                         Location one = new Location(i,j);
                         Location two = new Location(i+dx[k],j+dy[k]);
                         int val = Location.euclidean_distance(one,two);
                         //adding 1 so i can add -1 into the graph class (shift down values by one in optimal path)
-                        System.out.println("EDGE: " + grid[i][j] + " " + grid[i+dx[k]][j+dy[k]]);
+                        //System.out.println("EDGE: " + grid[i][j] + " " + grid[i+dx[k]][j+dy[k]]);
+                        /*
                         if(grid[i+dx[k]][j+dy[k]] != -1) {
+                            int wt = Math.max(1,Math.abs(heightmap[i][j] - heightmap[i+dx[k]][j+dy[k]]));
                             g.addEdge(grid[i][j], grid[i + dx[k]][j + dy[k]], UNIFORM_WEIGHT, val);
-                            System.out.println(grid[i][j] + " " + grid[i+dx[k]][j+dy[k]] + " " + UNIFORM_WEIGHT);
+                            System.out.println("EDGE: " + grid[i][j] + " " + grid[i+dx[k]][j+dy[k]] + " " + UNIFORM_WEIGHT);
+                        } else {
+                            continue;
+                         }
+                         */
+                        if(expanded_grid[i+dx[k]][j+dy[k]] != -1) {
+                           double wt = Math.max(1,Math.abs(heightmap[i][j] - heightmap[i+dx[k]][j+dy[k]]));
+                            g.addEdge(expanded_grid[i][j], expanded_grid[i + dx[k]][j + dy[k]], wt, val);
+                            System.out.println("EDGE: " + expanded_grid[i][j] + " " + expanded_grid[i+dx[k]][j+dy[k]] + " " + wt);
                         } else {
                             continue;
                         }
@@ -306,8 +409,7 @@ public class SSSP {
                 }
             }
         }
-        int nd = 0;
-        int goal = 4;
+
         g.astar(new NodeObj(nd,0), new NodeObj(goal,0));
         g.astar_predecessor[nd] = -1;
         ArrayList<Integer> ar = g.optimal_path_astar(goal);
@@ -319,7 +421,6 @@ public class SSSP {
     }
 
     public static void main(String[] args) {
-        SSSP_Runner g = new SSSP_Runner(25);
         /*
         g.addEdge(0, 3, 118, 329);
         g.addEdge(0, 4, 140, 253);
