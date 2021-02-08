@@ -38,6 +38,8 @@ public class BayesianNet {
     String[][] default_matrix;
     public static ArrayList< ArrayList<String> > data;
     public static ArrayList< ArrayList<EPair> > graph;
+    public HashMap<Integer, ArrayList<String> > terminal_states;
+    boolean[] vis = new boolean[100001];
     public double GLOBAL_AFFIRMATIVE_STORAGE=0;
     public double GLOBAL_NEGATIVE_STORAGE=0;
     //stores edges which contain information about queried value and whether its affirmative or negative
@@ -54,36 +56,37 @@ public class BayesianNet {
     //for data which was discretized by taking the average, the entropy values are pretty reasonable
     //look to better methods for this, or just better datasets
     public void assign_thresholds(){
-        THRESHOLDS_FOR_CLASSIFICATION.add(14.127291739894563);
-        THRESHOLDS_FOR_CLASSIFICATION.add(19.28964850615117);
-        THRESHOLDS_FOR_CLASSIFICATION.add( 91.96903339191566);
-        THRESHOLDS_FOR_CLASSIFICATION.add( 654.8891036906857);
-        THRESHOLDS_FOR_CLASSIFICATION.add( 0.096360281195079);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.10434098418277686);
-        THRESHOLDS_FOR_CLASSIFICATION.add( 0.08879931581722322);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.048919145869947236);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.181161862917399);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.06279760984182778);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.4051720562390161);
-        THRESHOLDS_FOR_CLASSIFICATION.add(1.2168534270650269);
-        THRESHOLDS_FOR_CLASSIFICATION.add(2.8660592267135288);
-        THRESHOLDS_FOR_CLASSIFICATION.add(40.33707908611603);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.007040978910369071);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.025478138840070306);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.031893716344463946);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.011796137082601056);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.020542298769771532);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.0037949038664323383);
-        THRESHOLDS_FOR_CLASSIFICATION.add(16.269189806678394);
-        THRESHOLDS_FOR_CLASSIFICATION.add(25.677223198594014);
-        THRESHOLDS_FOR_CLASSIFICATION.add(107.2612126537786);
-        THRESHOLDS_FOR_CLASSIFICATION.add(880.5831282952545);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.13236859402460469);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.25426504393673144);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.27218848330404205);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.11460622319859404);
-        THRESHOLDS_FOR_CLASSIFICATION.add( 0.29007557117750454);
-        THRESHOLDS_FOR_CLASSIFICATION.add(0.08394581722319855);
+        double shift_val = 2.0;
+        THRESHOLDS_FOR_CLASSIFICATION.add(14.127291739894563 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(19.28964850615117 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(91.96903339191566 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(654.8891036906857 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add( 0.096360281195079  * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.10434098418277686 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add( 0.08879931581722322 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.048919145869947236 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.181161862917399 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.06279760984182778 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.4051720562390161 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(1.2168534270650269 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(2.8660592267135288 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(40.33707908611603 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.007040978910369071 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.025478138840070306 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.031893716344463946 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.011796137082601056 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.020542298769771532 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.0037949038664323383 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(16.269189806678394 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(25.677223198594014 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(107.2612126537786 *  shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(880.5831282952545 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.13236859402460469 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.25426504393673144 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.27218848330404205 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.11460622319859404 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add( 0.29007557117750454 * shift_val);
+        THRESHOLDS_FOR_CLASSIFICATION.add(0.08394581722319855 * shift_val);
     }
 
     public BayesianNet(int nNodes) {
@@ -94,6 +97,7 @@ public class BayesianNet {
         for(int i = 0; i < 1200; i++){
             graph.add(new ArrayList<EPair>());
         }
+        terminal_states = new HashMap<Integer, ArrayList<String> >();
         assign_thresholds();
         //d = new DataParser(data);
     }
@@ -127,9 +131,17 @@ public class BayesianNet {
         }
         double num1 = (double)(a)/(double)(a+b);
         double num2 = (double)(b)/(double)(a+b);
-        GLOBAL_AFFIRMATIVE_STORAGE = a;
-        GLOBAL_NEGATIVE_STORAGE = b;
         return - (  (num1 * (double)(Math.log(num1))/(double)(Math.log(2)) ) + (num2 * (double)(Math.log(num2))/(double)(Math.log(2))) );
+    }
+
+    public void compute_global_vals(ArrayList<String> pts){
+        for(String s : pts){
+            if(s.equals("M")){
+                ++GLOBAL_AFFIRMATIVE_STORAGE;
+            } else {
+                ++GLOBAL_NEGATIVE_STORAGE;
+            }
+        }
     }
 
     public ArrayList< ArrayList<String> > updateData(ArrayList< ArrayList<String> > cur_data, int col, boolean target){
@@ -205,10 +217,10 @@ public class BayesianNet {
     }
 
 
-    //TODO: look into why there seems to be some sort of compression happening in the chosen features.
+    //TODO: look into why there seems to be some sort of compression happening in the chosen features (where some features are not included in the decision tree).
     //TODO: Not sure if this is a bug, a consequence of the data, or a consequence of how the data was made binary(maybe do different stats stuff)
 
-    public void construct_decision_tree(){
+    public void construct_decision_tree_entropy(){
         ArrayList<Integer> current_cols = new ArrayList<Integer>();
         ArrayList<String> pot_strings = new ArrayList<String>();
         String cur = "";
@@ -234,31 +246,33 @@ public class BayesianNet {
         Queue< QueueType > q = new LinkedList< QueueType >();
         q.add(seed);
         int NODE_PTR = 0;
-        while(!q.isEmpty()){
-            ArrayList< ArrayList<String> > newdata_aff= new ArrayList< ArrayList<String> >();
-            ArrayList< ArrayList<String> > newdata_neg = new ArrayList< ArrayList<String> >();
+        while(!q.isEmpty()) {
+            ArrayList<ArrayList<String>> newdata_aff = new ArrayList<ArrayList<String>>();
+            ArrayList<ArrayList<String>> newdata_neg = new ArrayList<ArrayList<String>>();
             double optimal_gain = 0;
             int optimal_column = -1;
             double new_raw_ent_one = 0;
             double new_raw_ent_two = 0;
             QueueType top = q.poll();
             int NODE_ID = top.node_id;
-            ArrayList< ArrayList< String> > quasidata = top.data;
+            ArrayList<ArrayList<String>> quasidata = top.data;
+
             String curbit = top.usedCols;
             System.out.println("USED COLS: " + curbit);
             double raw_ent = top.raw_entropy;
             System.out.println("INITIAL RAW ENTROPY: " + raw_ent);
             String curbit_new = "";
-            for(int i = 2; i < curbit.length(); i++){
-                if(curbit.charAt(i) != '1') {
+            for (int i = 2; i < curbit.length(); i++) {
+                if (curbit.charAt(i) != '1') {
                     String tmp = curbit;
                     curbit = curbit.substring(0, i) + '1' + curbit.substring(i + 1);
                     ArrayList<String> parsed = calculate_entropy_precomp(quasidata, i, true);
-                    ArrayList<String> parsed2 = calculate_entropy_precomp(quasidata, i,false);
+                    ArrayList<String> parsed2 = calculate_entropy_precomp(quasidata, i, false);
                     double entropy_val_one = calculate_entropy_postcomp(parsed);
                     double entropy_val_two = calculate_entropy_postcomp(parsed2);
-                    double pb1 = (double)(GLOBAL_AFFIRMATIVE_STORAGE) / (double)(GLOBAL_AFFIRMATIVE_STORAGE + GLOBAL_NEGATIVE_STORAGE);
-                    double pb2 = (double)(GLOBAL_NEGATIVE_STORAGE) / (double)(GLOBAL_AFFIRMATIVE_STORAGE + GLOBAL_NEGATIVE_STORAGE);
+                    compute_global_vals(quasidata.get(1));
+                    double pb1 = (double) (GLOBAL_AFFIRMATIVE_STORAGE) / (double) (GLOBAL_AFFIRMATIVE_STORAGE + GLOBAL_NEGATIVE_STORAGE);
+                    double pb2 = (double) (GLOBAL_NEGATIVE_STORAGE) / (double) (GLOBAL_AFFIRMATIVE_STORAGE + GLOBAL_NEGATIVE_STORAGE);
                     //System.out.println("RAW ENTROPY: " + raw_ent);
                     //System.out.println("AFFIRMATIVE ENTROPY: " + entropy_val_one);
                     //System.out.println("NEGATIVE ENTROPY: " + entropy_val_two);
@@ -268,8 +282,8 @@ public class BayesianNet {
                         optimal_column = i;
                         new_raw_ent_one = entropy_val_one;
                         new_raw_ent_two = entropy_val_two;
-                        newdata_aff = updateData(data,i,true);
-                        newdata_neg = updateData(data,i,false);
+                        newdata_aff = updateData(data, i, true);
+                        newdata_neg = updateData(data, i, false);
                         curbit_new = curbit;
 
                     }
@@ -277,26 +291,76 @@ public class BayesianNet {
                 }
             }
 
-            if(optimal_column != -1){
+            if (optimal_column != -1) {
                 QueueType qone = new QueueType(newdata_aff, curbit_new, new_raw_ent_one);
                 QueueType qtwo = new QueueType(newdata_neg, curbit_new, new_raw_ent_two);
                 qone.node_id = NODE_ID + 1;
                 qtwo.node_id = NODE_ID + 2;
-                Edge one = new Edge(optimal_column,true);
-                Edge two = new Edge(optimal_column,false);
+                Edge one = new Edge(optimal_column, true);
+                Edge two = new Edge(optimal_column, false);
                 System.out.println("RUN TWO");
 
                 ArrayList<EPair> c1 = graph.get(NODE_ID);
                 c1.add(new EPair(NODE_ID + 1, one));
                 c1.add(new EPair(NODE_ID + 2, one));
-                graph.set(NODE_ID,c1);
+                graph.set(NODE_ID, c1);
                 q.add(qone);
                 q.add(qtwo);
-
+            } else {
+                terminal_states.put(NODE_ID, quasidata.get(1));
             }
 
         }
 
+    }
+
+    //this assumes that our decision tree structure is already generated.
+    public boolean supervised_decision(int node_id, ArrayList<String> parameters){
+        System.out.println("CURRENT NODE: " + node_id);
+        if(graph.get(node_id).size() > 0){
+            ArrayList<EPair> chs = graph.get(node_id);
+            double thresh = THRESHOLDS_FOR_CLASSIFICATION.get(chs.get(0).coinciding_edge.current_factor - 2);
+            //System.out.println("FACTOR: " + chs.get(0).coinciding_edge.current_factor );
+            for(EPair e : chs) {
+                boolean targ_val = e.coinciding_edge.aff_or_neg;
+                int col = e.coinciding_edge.current_factor;
+                if( (Double.parseDouble(parameters.get(col-2)) <= thresh) == targ_val){
+                    return supervised_decision(e.node_id, parameters);
+                }
+            }
+        } else {
+            ArrayList<String> terminal = terminal_states.get(node_id);
+            double M = 0;
+            double B = 0;
+            for(String s : terminal){
+                if(s.equals("M")){
+                    ++M;
+                } else {
+                    ++B;
+                }
+            }
+            double targ = 0.5;
+            return ( ((double)(M)/(double)(M+B))  >= targ);
+        }
+        return true;
+
+    }
+
+    public void trav(int node_id){
+        if(graph.get(node_id).size() > 0) {
+            vis[node_id] = true;
+            ArrayList<EPair> tmp = graph.get(node_id);
+            System.out.println("NODE: " + node_id + " FACTOR: " + tmp.get(0).coinciding_edge.current_factor);
+            for (EPair e : tmp) {
+                if(!vis[e.node_id]) {
+                    trav(e.node_id);
+                }
+            }
+        } else {
+            if(!vis[node_id]) {
+                System.out.println("NODE: " + node_id);
+            }
+        }
     }
 
 
