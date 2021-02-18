@@ -1,6 +1,10 @@
 import processing.video.*;
 Capture c;
 
+
+//the jerkiness of the detection can be fixed by considering different regions of the screen rather than considering different pixels (i.e. split the screen into a bunch of 10*10 regions)
+//and iterate on that
+
 color coltrak = color(255,0,0);
 
 void setup(){
