@@ -89,31 +89,34 @@ void face_swap(){
 
 
 void captureEvent(Capture c){
-  // prev_v_image.copy(c, 0, 0, c.width, c.height, 0, 0, prev_v_image.width, prev_v_image.height);
-   //prev_v_image.updatePixels();
-   //CUR_COUNTER = ( (CUR_COUNTER + 1) % (BUFFER_COUNTER) );
+   prev_v_image.copy(c, 0, 0, c.width, c.height, 0, 0, prev_v_image.width, prev_v_image.height);
+   prev_v_image.updatePixels();
+   CUR_COUNTER = ( (CUR_COUNTER + 1) % (BUFFER_COUNTER) );
    c.read();
 }
 
-void detectMotion(){
+boolean detectMotion(){
   c.loadPixels();
   loadPixels();
   //prev_v_image.loadPixels();
   image(c,0,0);
+  boolean hasMove = false;
   for(int i = 0; i < c.pixels.length; i++){
      /*
       println("IMAGE: " + red(prev_v_image.pixels[i]) + " " + green(prev_v_image.pixels[i]) + " " + blue(prev_v_image.pixels[i]) );
       println("CAPTURE: " + red(c.pixels[i]) + " " + green(c.pixels[i]) + " " + blue(c.pixels[i]) );
       println("DISTANCE: " + dist( red(prev_v_image.pixels[i]), green(prev_v_image.pixels[i]), blue(prev_v_image.pixels[i]), red(c.pixels[i]), green(c.pixels[i]), blue(c.pixels[i]) ) );
       */
-      if(dist( red(prev_v_image.pixels[i]), green(prev_v_image.pixels[i]), blue(prev_v_image.pixels[i]), red(c.pixels[i]), green(c.pixels[i]), blue(c.pixels[i]) ) <= 40 ){
+      if(dist( red(prev_v_image.pixels[i]), green(prev_v_image.pixels[i]), blue(prev_v_image.pixels[i]), red(c.pixels[i]), green(c.pixels[i]), blue(c.pixels[i]) ) <= 100 ){
         pixels[i] = color(0,0,0);
       } else{
+        hasMove = true;
         pixels[i] = color(255,255,0);
       }
    }
    c.updatePixels();
    updatePixels();
+   return hasMove;
 }
 
 void air_draw(){
@@ -176,8 +179,16 @@ void mousePressed(){
 
 
 void draw(){
-  //detectMotion();
-  
+  if(detectMotion()){
+    noFill();
+    stroke(255,0,0);
+    rect(0,0,640,480);
+    stroke(255,255,0);
+    rect(1,1,638,478);
+    stroke(0,255,255);
+    rect(2,2,637,477);
+  }
+  /*
   air_draw();
   image(c,0,0);
   for(PVector p : drawing){
@@ -186,6 +197,7 @@ void draw(){
     }
     ellipse(p.x,p.y,10,10);
   }
+  */
   
   
   /*
