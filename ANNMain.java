@@ -12,11 +12,15 @@ class Neuron {
     double RAW_VALUE, ACTIVATION_VALUE, BIAS_VALUE;
     public Neuron(double RAW_VALUE, double BIAS_VALUE, int KEY) {
         this.RAW_VALUE = RAW_VALUE;
-        if(KEY==1) {
+        if(KEY==0) {
+            this.ACTIVATION_VALUE = this.RAW_VALUE;
+        } else if(KEY==1) {
+            //this.ACTIVATION_VALUE = this.RAW_VALUE;
             this.ACTIVATION_VALUE = Neuron.ReLU(RAW_VALUE);
         } else if(KEY==2){
+            //this.ACTIVATION_VALUE = this.RAW_VALUE;
             this.ACTIVATION_VALUE = Neuron.sigmoid(RAW_VALUE);
-        }
+        } else if(KEY==3){this.ACTIVATION_VALUE = this.RAW_VALUE;}
         this.BIAS_VALUE = BIAS_VALUE;
     }
 
@@ -136,42 +140,29 @@ public class ANNMain extends DataReader {
         raw_weights = new ArrayList<double[]>();
     }
 
-    public static double dotprod(Neuron[] one, double[] weights, double bias) {
-        double r = 0;
-        for (int i = 0; i < one.length; i++) {
-            r += (one[i].RAW_VALUE * weights[i]);
-        }
-        return r + bias;
-    }
-
     public static double dp(ArrayList<Neuron> one, ArrayList<Double> two) {
         double r = 0;
         for (int i = 0; i < one.size(); i++) {
-            r += (one.get(i).RAW_VALUE * two.get(i));
+            r += (one.get(i).ACTIVATION_VALUE * two.get(i));
         }
         return r;
     }
 
     public Layer custom_dot_product(Layer l, int idx, int KEY) {
-        ArrayList<Neuron> neurons = l.n;
-        //System.out.println("CURRENT LAYER: ");
-        //for(Neuron inp: neurons){System.out.print(inp.RAW_VALUE + " ");}System.out.println();
-        System.out.println("KEY: " + KEY);
+        ArrayList<Neuron> neurons = l.n;;
         ArrayList<Neuron> ret = new ArrayList<Neuron>();
+        //System.out.println("INDEX " + idx);
         ArrayList<ArrayList<Double>> weights = this.WEIGHTS.get(idx);
 
         ArrayList<Double> biases = BIASES.get(idx + 1);
         int bias_idx = 0;
         for (ArrayList<Double> wt : weights) {
             double e = dp(l.n, wt) + biases.get(bias_idx);
+            //for(Neuron nm : l.n){System.out.print(nm.RAW_VALUE + " ");}System.out.println();
+            //for(Neuron nm : l.n){System.out.print(nm.ACTIVATION_VALUE + " ");}System.out.println();
+            //for(Double d : wt){System.out.print(d + " ");}System.out.println();
+            //System.out.println("---------------------------------------------------");
             double d = 0;
-            /*
-            if(KEY==1) {
-                d = Neuron.ReLU(e);
-            } else if(KEY==2){
-                d = Neuron.sigmoid(e);
-            }
-             */
             ret.add(new Neuron(e, biases.get(bias_idx), KEY));
             bias_idx++;
         }
@@ -240,7 +231,7 @@ public class ANNMain extends DataReader {
         for(int i = 0; i < ANNRunner.weight_matrix_two.length; i++){
             ArrayList<Double> d = new ArrayList<Double>();
             for(int j = 0; j < ANNRunner.weight_matrix_two.length; j++){
-                d.add(ANNRunner.weight_matrix_one[i][j]);
+                d.add(ANNRunner.weight_matrix_two[i][j]);
                 System.out.print(ANNRunner.weight_matrix_two[i][j] + " ");
             }
             System.out.println();
@@ -250,16 +241,16 @@ public class ANNMain extends DataReader {
         for(int i = 0; i < ANNRunner.weight_matrix_three.length; i++){
             ArrayList<Double> d = new ArrayList<Double>();
             for(int j = 0; j < ANNRunner.weight_matrix_three.length; j++){
-                d.add(ANNRunner.weight_matrix_one[i][j]);
+                d.add(ANNRunner.weight_matrix_three[i][j]);
                 System.out.print(ANNRunner.weight_matrix_three[i][j] + " ");
             }
             System.out.println();
             three.add(d);
         }
         System.out.println("---------------------------------------");
-        WEIGHTS.add(one);
-        WEIGHTS.add(two);
-        WEIGHTS.add(three);
+        this.WEIGHTS.add(one);
+        this.WEIGHTS.add(two);
+        this.WEIGHTS.add(three);
         for(int i = 0; i < 4; i++) {
             ArrayList<Double> bias = new ArrayList<Double>();
             for(int j = 0; j < 4; j++){
@@ -275,7 +266,7 @@ public class ANNMain extends DataReader {
         while(amt < sz){
             l = custom_dot_product(l, amt - 1, amt);
             for(Neuron neu : l.n){System.out.print(neu.ACTIVATION_VALUE + " " );}System.out.println();
-            amt++;
+            ++amt;
         }
         return l;
     }
@@ -374,8 +365,6 @@ public class ANNMain extends DataReader {
 
 
     //should produce a matrix representing the gradients for our weights and activations
-    //takes inputs of Layer objects, but can make Batch object to make process quick
-    //https://stats.stackexchange.com/questions/5363/backpropagation-algorithm
     public void BACKPROPAGATION(Layer expected_input) {
         //calculate partials with respect to activations and weights
         int ptr = this.NEURAL_NETWORK.size() - 1;
@@ -412,3 +401,4 @@ public class ANNMain extends DataReader {
 
     }
 }
+
