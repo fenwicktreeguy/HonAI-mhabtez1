@@ -42,15 +42,31 @@ public class ANNRunner {
         a.SET_WEIGHTS_AND_BIASES();
         ArrayList<Layer> l = new ArrayList<Layer>();
         testData(l);
+
+        //this is code for the mini-batch testing stuff (with set weights)
+        int ONE = 0;
         for(Layer lp : l) {
+            ArrayList<Double> NOT_SOFTMAX = new ArrayList<Double>();
             Layer lay = a.MODIFIED_FEEDFORWARD(lp, 4);
+            for(int i = 0; i < lay.n.size(); i++){
+                if(i==ONE){
+                    NOT_SOFTMAX.add(1.0);
+                } else {
+                    NOT_SOFTMAX.add(0.0);
+                }
+            }
+            ++ONE;
             //for(Neuron nl : lay.n){System.out.print(nl.ACTIVATION_VALUE + " ");}System.out.println();
             System.out.println("SOFTMAX: ");
             ArrayList<Double> SOFTMAX = Neuron.softmax(lay.n);
             for (Double d : SOFTMAX) {
                 System.out.print(d + " ");
             }
+            for(Double d : NOT_SOFTMAX) {
+                System.out.print(d + " ");
+            }
             System.out.println();
+            System.out.println("CROSS ENTROPY: " + Neuron.CROSS_ENTROPY(NOT_SOFTMAX, SOFTMAX));
             System.out.println("------------------------------------");
             //System.out.println();
         }
@@ -80,3 +96,4 @@ public class ANNRunner {
          */
     }
 }
+
