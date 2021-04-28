@@ -49,7 +49,13 @@ class Neuron {
     public static double sigmoid_derivative(double x) {
         return (sigmoid(x) * (1 - sigmoid(x)));
     }
-
+    public static double CROSS_ENTROPY(ArrayList<Double> OHE, ArrayList<Double> input){
+        double res = 0;
+        for(int i = 0; i < OHE.size(); i++){
+            res += (OHE.get(i) * (double)(Math.log(input.get(i)))/(double)Math.log(Math.E)) ;
+        }
+        return (-1 * res);
+    }
     public static ArrayList<Double> SIGLAYER(ArrayList<Neuron> finlayer) {
         ArrayList<Double> ans = new ArrayList<Double>();
         for(int i = 0; i < finlayer.size(); i++){
@@ -90,13 +96,6 @@ class Neuron {
             ret[i] = ans;
         }
         return ret;
-    }
-    public double CROSS_ENTROPY(ArrayList<Double> OHE, ArrayList<Double> input){
-        double res = 0;
-        for(int i = 0; i < OHE.size(); i++){
-            res += (OHE.get(i) * (double)(Math.log(input.get(i)))/(double)Math.log(2)) ;
-        }
-        return (-1 * res);
     }
     //note that for this application, the hadamard product is only being applied on COLUMN VECTORS,
     //but when being applied recursively backwards, the intuition can be extended to matrices.
@@ -351,7 +350,7 @@ public class ANNMain extends DataReader {
         return s_v;
     }
 
-    public ArrayList<Double> ONE_HOT_ENCODING(int idx, int LIM) {
+    public static ArrayList<Double> ONE_HOT_ENCODING(int idx, int LIM) {
         ArrayList<Double> d = new ArrayList<Double>();
         for (int i = 1; i <= LIM; i++) {
             if (i == idx) {
@@ -401,4 +400,5 @@ public class ANNMain extends DataReader {
 
     }
 }
+
 
