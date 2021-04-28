@@ -365,6 +365,7 @@ public class ANNMain extends DataReader {
 
     //should produce a matrix representing the gradients for our weights and activations
     //THIS BACKPROP IMPL IS INCOMPLETE
+    //https://stats.stackexchange.com/questions/5363/backpropagation-algorithm
     public void BACKPROPAGATION(Layer expected_input) {
         //calculate partials with respect to activations and weights
         int ptr = this.NEURAL_NETWORK.size() - 1;
